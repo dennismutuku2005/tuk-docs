@@ -1,0 +1,14 @@
+Analyzing tuk-docs...                                           
+
+   info - The imported package 'path' isn't a dependency of the importing package - lib\models\document_model.dart:2:8 - depend_on_referenced_packages
+   info - Statements in an if should be enclosed in a block - lib\models\document_model.dart:28:32 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\models\document_model.dart:29:45 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\models\document_model.dart:30:45 - curly_braces_in_flow_control_structures
+warning - The value of the field '_searchQuery' isn't used - lib\providers\document_provider.dart:14:10 - unused_field
+   info - The imported package 'path' isn't a dependency of the importing package - lib\services\file_service.dart:2:8 - depend_on_referenced_packages
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\views\settings_page.dart:48:21 - deprecated_member_use
+warning - Unused import: '../themes/app_theme.dart' - lib\views\tools_page.dart:2:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\views\tools_page.dart:93:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\document_card.dart:51:36 - deprecated_member_use
+  error - The name 'MyApp' isn't a class - test\widget_test.dart:16:35 - creation_with_non_type
+
