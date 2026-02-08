@@ -9,8 +9,8 @@ import 'views/home/landing_page.dart';
 import 'views/viewer/pdf_viewer_page.dart';
 import 'models/document_model.dart';
 import 'views/home/home_page.dart';
+import 'views/viewer/word_viewer_page.dart';
 import 'package:open_filex/open_filex.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -68,6 +68,10 @@ class _TukDocsAppState extends State<TukDocsApp> {
     if (doc.type == DocumentType.pdf) {
       _navigatorKey.currentState?.push(
         MaterialPageRoute(builder: (_) => PdfViewerPage(doc: doc)),
+      );
+    } else if (doc.type == DocumentType.word) {
+      _navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => WordViewerPage(doc: doc)),
       );
     } else {
       OpenFilex.open(path);
