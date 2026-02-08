@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:read_pdf_text/read_pdf_text.dart';
 import '../../models/document_model.dart';
 import '../../themes/app_theme.dart';
 import 'package:share_plus/share_plus.dart';
@@ -16,8 +18,44 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   int totalPages = 0;
   int currentPage = 0;
   bool isReady = false;
+  bool isExtracting = false;
   String errorMessage = '';
   PDFViewController? _pdfViewController;
+
+  Future<void> _copyPageText() async {
+    setState(() => isExtracting = true);
+    try {
+      final List<String> pagesText = await ReadPdfText.getPDFtextPaginated(widget.doc.path);
+      if (currentPage < pagesText.length) {
+        final text = pagesText[currentPage].trim();
+        if (text.isNotEmpty) {
+          await Clipboard.setData(ClipboardData(text: text));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Text copied from this page!'),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } else {
+          throw 'No text found on this page (might be an image-based PDF).';
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not copy: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => isExtracting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +63,17 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       appBar: AppBar(
         title: Text(widget.doc.name),
         actions: [
+          if (isExtracting)
+            const Center(child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+            ))
+          else
+            IconButton(
+              icon: const Icon(Icons.copy_rounded),
+              tooltip: "Copy Page Text",
+              onPressed: _copyPageText,
+            ),
           IconButton(
             icon: const Icon(Icons.share_rounded),
             tooltip: "Share",
