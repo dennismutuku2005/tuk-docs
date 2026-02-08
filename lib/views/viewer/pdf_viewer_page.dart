@@ -95,6 +95,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             pageSnap: true,
             defaultPage: currentPage,
             fitPolicy: FitPolicy.BOTH,
+            nightMode: Theme.of(context).brightness == Brightness.dark,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             onRender: (pages) {
               setState(() {
                 totalPages = pages!;
