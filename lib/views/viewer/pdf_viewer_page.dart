@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:read_pdf_text/read_pdf_text.dart';
+import 'package:pdfrx/pdfrx.dart';
 import '../../models/document_model.dart';
 import '../../themes/app_theme.dart';
 import 'package:share_plus/share_plus.dart';
@@ -18,44 +16,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   int totalPages = 0;
   int currentPage = 0;
   bool isReady = false;
-  bool isExtracting = false;
   String errorMessage = '';
-  PDFViewController? _pdfViewController;
-
-  Future<void> _copyPageText() async {
-    setState(() => isExtracting = true);
-    try {
-      final List<String> pagesText = await ReadPdfText.getPDFtextPaginated(widget.doc.path);
-      if (currentPage < pagesText.length) {
-        final text = pagesText[currentPage].trim();
-        if (text.isNotEmpty) {
-          await Clipboard.setData(ClipboardData(text: text));
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Text copied from this page!'),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        } else {
-          throw 'No text found on this page (might be an image-based PDF).';
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not copy: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => isExtracting = false);
-    }
-  }
+  final PdfViewerController _pdfController = PdfViewerController();
 
   @override
   Widget build(BuildContext context) {
@@ -63,17 +25,6 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       appBar: AppBar(
         title: Text(widget.doc.name),
         actions: [
-          if (isExtracting)
-            const Center(child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-            ))
-          else
-            IconButton(
-              icon: const Icon(Icons.copy_rounded),
-              tooltip: "Copy Page Text",
-              onPressed: _copyPageText,
-            ),
           IconButton(
             icon: const Icon(Icons.share_rounded),
             tooltip: "Share",
@@ -84,42 +35,26 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Stack(
-        children: [
-          PDFView(
-            filePath: widget.doc.path,
-            enableSwipe: true,
-            swipeHorizontal: false,
-            autoSpacing: true,
-            pageFling: true,
-            pageSnap: true,
-            defaultPage: currentPage,
-            fitPolicy: FitPolicy.BOTH,
-            nightMode: Theme.of(context).brightness == Brightness.dark,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            onRender: (pages) {
+      body: SfPdfViewerFix(
+        child: PdfViewer.file(
+          widget.doc.path,
+          controller: _pdfController,
+          params: PdfViewerParams(
+            onViewerReady: (document, controller) {
               setState(() {
-                totalPages = pages!;
+                totalPages = document.pages.length;
                 isReady = true;
               });
             },
+            onPageChanged: (pageNumber) {
+              if (pageNumber != null) {
+                setState(() => currentPage = pageNumber - 1);
+              }
+            },
             onError: (error) => setState(() => errorMessage = error.toString()),
-            onPageError: (page, error) => setState(() => errorMessage = '$page: $error'),
-            onViewCreated: (PDFViewController pdfViewController) {
-              _pdfViewController = pdfViewController;
-            },
-            onPageChanged: (int? page, int? total) {
-              setState(() => currentPage = page!);
-            },
+            // pdfrx supports selection by default
           ),
-          if (errorMessage.isNotEmpty)
-            Center(child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Text(errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
-            ))
-          else if (!isReady)
-            const Center(child: CircularProgressIndicator()),
-        ],
+        ),
       ),
       bottomNavigationBar: isReady ? Container(
         padding: EdgeInsets.fromLTRB(20, 8, 20, 8 + MediaQuery.of(context).padding.bottom),
@@ -145,12 +80,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               children: [
                 _buildNavButton(
                   icon: Icons.arrow_back_ios_new_rounded,
-                  onPressed: currentPage > 0 ? () => _pdfViewController?.setPage(currentPage - 1) : null,
+                  onPressed: currentPage > 0 ? () => _pdfController.goToPage(pageNumber: currentPage) : null,
                 ),
                 const SizedBox(width: 12),
                 _buildNavButton(
                   icon: Icons.arrow_forward_ios_rounded,
-                  onPressed: currentPage < totalPages - 1 ? () => _pdfViewController?.setPage(currentPage + 1) : null,
+                  onPressed: currentPage < totalPages - 1 ? () => _pdfController.goToPage(pageNumber: currentPage + 2) : null,
                 ),
               ],
             )
@@ -176,5 +111,16 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         ),
       ),
     );
+  }
+}
+
+// Wrapper for error handling or additional features
+class SfPdfViewerFix extends StatelessWidget {
+  final Widget child;
+  const SfPdfViewerFix({super.key, required this.child});
+  
+  @override
+  Widget build(BuildContext context) {
+    return child;
   }
 }
