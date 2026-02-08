@@ -84,67 +84,90 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              const Icon(
-                Icons.description_rounded,
-                size: 100,
-                color: AppTheme.primaryBlue,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'tuk-docs',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryBlue,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Simple. Without Ads.\nLearning Made Easy.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'The minimalist document viewer for PDFs and Word files.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _handleGetStarted(context),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Get Started', style: TextStyle(fontSize: 18)),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward),
-                    ],
+      body: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryBlue.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.auto_stories_rounded,
+                    size: 80,
+                    color: AppTheme.primaryBlue,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Available for Android and iOS\nNO SUBSCRIPTIONS REQUIRED',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 48),
+                Text(
+                  'tuk-docs',
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.primaryBlue,
+                    letterSpacing: -1,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Simple. Without Ads.',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+                const Spacer(),
+                const Text(
+                  'The minimalist document viewer for PDFs and Word files.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: () => _handleGetStarted(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text(
+                      'Get Started', 
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'NO SUBSCRIPTIONS REQUIRED',
+                  style: TextStyle(
+                    fontSize: 11, 
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
