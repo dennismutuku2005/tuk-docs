@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
-enum DocumentType { pdf, word, other }
+enum DocumentType { pdf, word, ppt, other }
 
 class DocumentModel {
   final String path;
@@ -29,6 +29,8 @@ class DocumentModel {
       type = DocumentType.pdf;
     } else if (['doc', 'docx'].contains(ext)) {
       type = DocumentType.word;
+    } else if (['ppt', 'pptx'].contains(ext)) {
+      type = DocumentType.ppt;
     }
 
     return DocumentModel(
