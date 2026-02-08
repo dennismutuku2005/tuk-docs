@@ -6,19 +6,29 @@ import '../models/document_model.dart';
 class FileService {
   static const List<String> pdfExtensions = ['pdf'];
   static const List<String> wordExtensions = ['doc', 'docx'];
+  static const List<String> pptExtensions = ['ppt', 'pptx'];
 
   Future<List<DocumentModel>> getAllDocuments() async {
     List<DocumentModel> docs = [];
+    Set<String> uniquePaths = {}; // To avoid duplicates if paths overlap
     
     // Get common directories
     List<Directory?> directories = [];
     
     if (Platform.isAndroid) {
-      directories.add(Directory('/storage/emulated/0/Download'));
-      directories.add(Directory('/storage/emulated/0/Documents'));
-      directories.add(Directory('/storage/emulated/0/Desktop'));
-      directories.add(Directory('/storage/emulated/0/WhatsApp/Media/WhatsApp Documents'));
-      directories.add(Directory('/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents'));
+      final List<String> commonPaths = [
+        '/storage/emulated/0/Download',
+        '/storage/emulated/0/Documents',
+        '/storage/emulated/0/Download/Pdfs',
+        '/storage/emulated/0/Documents/Pdfs',
+        '/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents',
+        '/storage/emulated/0/WhatsApp/Media/WhatsApp Documents',
+        '/storage/emulated/0/Telegram/Telegram Documents',
+      ];
+
+      for (var path in commonPaths) {
+        directories.add(Directory(path));
+      }
     } else if (Platform.isIOS) {
       directories.add(await getApplicationDocumentsDirectory());
     }
@@ -26,52 +36,65 @@ class FileService {
     for (var dir in directories) {
       if (dir != null && await dir.exists()) {
         try {
-          final List<FileSystemEntity> entities = await dir.list(recursive: true, followLinks: false).toList().catchError((e) {
-            // Handle errors for the entire list if needed, but we'll try to handle per-item via stream
-            return <FileSystemEntity>[];
-          });
+          // Non-recursive listing is faster for top-level folders
+          // But we want to find files in subfolders like "WhatsApp Documents"
+          final List<FileSystemEntity> entities = await dir.list(recursive: false).toList().catchError((e) => <FileSystemEntity>[]);
 
           for (var entity in entities) {
             if (entity is File) {
+              _processFile(entity, docs, uniquePaths);
+            } else if (entity is Directory) {
+              // Deep scan only for specific folders if needed, or just one level down
+              // For simplicity and speed, we check one level of subdirectories
               try {
-                // Skip restricted system folders
-                if (entity.path.contains('/Android/data') || entity.path.contains('/Android/obb')) {
-                  continue;
+                final subEntities = await entity.list(recursive: false).toList().catchError((e) => <FileSystemEntity>[]);
+                for (var sub in subEntities) {
+                  if (sub is File) {
+                    _processFile(sub, docs, uniquePaths);
+                  }
                 }
-
-                String ext = p.extension(entity.path).replaceAll('.', '').toLowerCase();
-                DocumentType? type;
-                
-                if (pdfExtensions.contains(ext)) {
-                  type = DocumentType.pdf;
-                } else if (wordExtensions.contains(ext)) {
-                  type = DocumentType.word;
-                }
-                
-                if (type != null) {
-                  print('Found supported file: ${entity.path} as $type');
-                  FileStat stats = await entity.stat();
-                  docs.add(DocumentModel(
-                    path: entity.path,
-                    name: p.basename(entity.path),
-                    type: type,
-                    modifiedDate: stats.modified,
-                    sizeInBytes: stats.size,
-                  ));
-                }
-              } catch (e) {
-                // Skip individual file if error (e.g. permission)
-                continue;
-              }
+              } catch (_) {}
             }
           }
         } catch (e) {
-          // Skip the entire directory if it fails to list
           continue;
         }
       }
     }
     
     return docs;
+  }
+
+  void _processFile(File file, List<DocumentModel> docs, Set<String> uniquePaths) async {
+    if (uniquePaths.contains(file.path)) return;
+    
+    // Skip system/hidden files
+    final name = p.basename(file.path);
+    if (name.startsWith('.') || file.path.contains('/Android/data') || file.path.contains('/Android/obb')) {
+      return;
+    }
+
+    String ext = p.extension(file.path).replaceAll('.', '').toLowerCase();
+    DocumentType? type;
+    
+    if (pdfExtensions.contains(ext)) {
+      type = DocumentType.pdf;
+    } else if (wordExtensions.contains(ext)) {
+      type = DocumentType.word;
+    } else if (pptExtensions.contains(ext)) {
+      type = DocumentType.ppt;
+    }
+    
+    if (type != null) {
+      FileStat stats = await file.stat();
+      docs.add(DocumentModel(
+        path: file.path,
+        name: name,
+        type: type,
+        modifiedDate: stats.modified,
+        sizeInBytes: stats.size,
+      ));
+      uniquePaths.add(file.path);
+    }
   }
 }
