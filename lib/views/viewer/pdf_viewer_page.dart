@@ -35,25 +35,22 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: SfPdfViewerFix(
-        child: PdfViewer.file(
-          widget.doc.path,
-          controller: _pdfController,
-          params: PdfViewerParams(
-            onViewerReady: (document, controller) {
-              setState(() {
-                totalPages = document.pages.length;
-                isReady = true;
-              });
-            },
-            onPageChanged: (pageNumber) {
-              if (pageNumber != null) {
-                setState(() => currentPage = pageNumber - 1);
-              }
-            },
-            onError: (error) => setState(() => errorMessage = error.toString()),
-            // pdfrx supports selection by default
-          ),
+      body: PdfViewer.file(
+        widget.doc.path,
+        controller: _pdfController,
+        params: PdfViewerParams(
+          onViewerReady: (document, controller) {
+            setState(() {
+              totalPages = document.pages.length;
+              isReady = true;
+            });
+          },
+          onPageChanged: (pageNumber) {
+            if (pageNumber != null) {
+              setState(() => currentPage = pageNumber - 1);
+            }
+          },
+          // pdfrx supports selection by default
         ),
       ),
       bottomNavigationBar: isReady ? Container(
@@ -114,13 +111,3 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   }
 }
 
-// Wrapper for error handling or additional features
-class SfPdfViewerFix extends StatelessWidget {
-  final Widget child;
-  const SfPdfViewerFix({super.key, required this.child});
-  
-  @override
-  Widget build(BuildContext context) {
-    return child;
-  }
-}
