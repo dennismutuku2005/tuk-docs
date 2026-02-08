@@ -18,38 +18,33 @@ class _WordViewerPageState extends State<WordViewerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.doc.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text("Word Document", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-          ],
-        ),
+        title: Text(widget.doc.name),
         actions: [
           IconButton(
-            icon: const Icon(Icons.open_in_new_rounded),
-            tooltip: "Open in External App",
-            onPressed: () => OpenFilex.open(widget.doc.path),
-          ),
-          IconButton(
             icon: const Icon(Icons.share_rounded),
+            tooltip: "Share Document",
             onPressed: () {
               Share.shareXFiles([XFile(widget.doc.path)], text: 'Check out this document: ${widget.doc.name}');
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.open_in_new_rounded),
+            tooltip: "External App",
+            onPressed: () => OpenFilex.open(widget.doc.path),
+          ),
         ],
       ),
-      body: DocxView(
-        filePath: widget.doc.path,
-        fontSize: 16,
-        onError: (error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: $error'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
+      body: Container(
+        color: Theme.of(context).cardTheme.color,
+        child: DocxView(
+          filePath: widget.doc.path,
+          fontSize: 15,
+          onError: (error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Could not load: $error'), backgroundColor: Colors.red),
+            );
+          },
+        ),
       ),
     );
   }
