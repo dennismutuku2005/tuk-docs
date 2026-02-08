@@ -22,6 +22,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DocumentProvider>().fetchDocuments();
+    });
+  }
+
   final List<Widget> _pages = [
     const FilesListScreen(),
     const RecentFilesScreen(),
@@ -40,12 +48,14 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
+        elevation: 10,
+        backgroundColor: Theme.of(context).cardColor,
         selectedItemColor: AppTheme.primaryBlue,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.folder_rounded), label: 'Files'),
+          BottomNavigationBarItem(icon: Icon(Icons.folder_copy_rounded), label: 'Files'),
           BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'Recent'),
-          BottomNavigationBarItem(icon: Icon(Icons.auto_fix_high_rounded), label: 'Tools'),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome_mosaic_rounded), label: 'Tools'),
           BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
         ],
       ),
@@ -68,27 +78,10 @@ class FilesListScreen extends StatelessWidget {
       );
     } else {
       final result = await OpenFilex.open(doc.path);
-      if (result.type != ResultType.done) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Could not open file: ${result.message}'),
-              duration: const Duration(seconds: 3),
-              action: SnackBarAction(
-                label: 'Details',
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Opening Error'),
-                      content: Text(result.message),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
-        }
+      if (result.type != ResultType.done && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open: ${result.message}')),
+        );
       }
     }
   }
@@ -99,23 +92,24 @@ class FilesListScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('tuk-docs', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('tuk-docs'),
           actions: [
             IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                showSearch(context: context, delegate: DocumentSearchDelegate());
-              },
+              icon: const Icon(Icons.search_rounded),
+              onPressed: () => showSearch(context: context, delegate: DocumentSearchDelegate()),
             ),
-            IconButton(icon: const Icon(Icons.account_circle_outlined), onPressed: () {}),
+            const SizedBox(width: 8),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             isScrollable: false,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorWeight: 3,
             indicatorColor: AppTheme.primaryBlue,
             labelColor: AppTheme.primaryBlue,
-            unselectedLabelColor: Colors.grey,
-            tabs: [
-              Tab(text: 'All'),
+            unselectedLabelColor: Colors.grey[500],
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            tabs: const [
+              Tab(text: 'Library'),
               Tab(text: 'PDF'),
               Tab(text: 'Word'),
             ],
@@ -123,7 +117,7 @@ class FilesListScreen extends StatelessWidget {
         ),
         body: Consumer<DocumentProvider>(
           builder: (context, provider, child) {
-            if (provider.isLoading) {
+            if (provider.isLoading && provider.allDocs.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -135,11 +129,6 @@ class FilesListScreen extends StatelessWidget {
               ],
             );
           },
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: AppTheme.primaryBlue,
-          child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
     );
