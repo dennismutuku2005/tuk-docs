@@ -37,45 +37,48 @@ class DocumentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        tileColor: Theme.of(context).cardTheme.color,
         leading: Container(
-          padding: const EdgeInsets.all(12),
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
-            color: _getIconColor().withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: _getIconColor().withOpacity(0.08),
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(_getIcon(), color: _getIconColor(), size: 30),
+          child: Icon(_getIcon(), color: _getIconColor(), size: 24),
         ),
         title: Text(
           doc.name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              'Modified: ${DateFormat('MMM dd, yyyy').format(doc.modifiedDate)} • ${doc.sizeFormatted}',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-        trailing: ElevatedButton(
-          onPressed: onTap,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            backgroundColor: AppTheme.primaryBlue,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            letterSpacing: -0.2,
           ),
-          child: const Text('Open', style: TextStyle(color: Colors.white, fontSize: 13)),
         ),
-        onTap: onTap,
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            '${doc.sizeFormatted} • ${DateFormat('d MMM, yyyy').format(doc.modifiedDate)}',
+            style: TextStyle(
+              fontSize: 12, 
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right_rounded,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+          size: 20,
+        ),
       ),
     );
   }
