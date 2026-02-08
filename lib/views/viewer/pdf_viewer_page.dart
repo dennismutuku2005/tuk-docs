@@ -22,14 +22,16 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.doc.name, style: const TextStyle(fontSize: 16)),
+        title: Text(widget.doc.name),
         actions: [
           IconButton(
             icon: const Icon(Icons.share_rounded),
+            tooltip: "Share",
             onPressed: () {
-              Share.shareXFiles([XFile(widget.doc.path)], text: 'Check out this document: ${widget.doc.name}');
+              Share.shareXFiles([XFile(widget.doc.path)], text: 'Document: ${widget.doc.name}');
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
@@ -49,72 +51,78 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                 isReady = true;
               });
             },
-            onError: (error) {
-              setState(() {
-                errorMessage = error.toString();
-              });
-            },
-            onPageError: (page, error) {
-              setState(() {
-                errorMessage = '$page: ${error.toString()}';
-              });
-            },
+            onError: (error) => setState(() => errorMessage = error.toString()),
+            onPageError: (page, error) => setState(() => errorMessage = '$page: $error'),
             onViewCreated: (PDFViewController pdfViewController) {
               _pdfViewController = pdfViewController;
             },
             onPageChanged: (int? page, int? total) {
-              setState(() {
-                currentPage = page!;
-              });
+              setState(() => currentPage = page!);
             },
           ),
           if (errorMessage.isNotEmpty)
-            Center(child: Text(errorMessage))
+            Center(child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Text(errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
+            ))
           else if (!isReady)
             const Center(child: CircularProgressIndicator()),
         ],
       ),
-      bottomNavigationBar: isReady ? SafeArea(
-        child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Page ${currentPage + 1} of $totalPages',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_up_rounded),
-                    onPressed: currentPage > 0 ? () {
-                      _pdfViewController?.setPage(currentPage - 1);
-                    } : null,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                    onPressed: currentPage < totalPages - 1 ? () {
-                      _pdfViewController?.setPage(currentPage + 1);
-                    } : null,
-                  ),
-                ],
-              )
-            ],
-          ),
+      bottomNavigationBar: isReady ? Container(
+        padding: EdgeInsets.fromLTRB(20, 8, 20, 8 + MediaQuery.of(context).padding.bottom),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.1))),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Progress', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                Text(
+                  'Page ${currentPage + 1} / $totalPages',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                _buildNavButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onPressed: currentPage > 0 ? () => _pdfViewController?.setPage(currentPage - 1) : null,
+                ),
+                const SizedBox(width: 12),
+                _buildNavButton(
+                  icon: Icons.arrow_forward_ios_rounded,
+                  onPressed: currentPage < totalPages - 1 ? () => _pdfViewController?.setPage(currentPage + 1) : null,
+                ),
+              ],
+            )
+          ],
         ),
       ) : null,
+    );
+  }
+
+  Widget _buildNavButton({required IconData icon, VoidCallback? onPressed}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 18, color: onPressed == null ? Colors.grey[300] : AppTheme.primaryBlue),
+        ),
+      ),
     );
   }
 }
