@@ -19,6 +19,8 @@ class DocumentCard extends StatelessWidget {
         return Icons.picture_as_pdf_rounded;
       case DocumentType.word:
         return Icons.description_rounded;
+      case DocumentType.ppt:
+        return Icons.slideshow_rounded;
       default:
         return Icons.insert_drive_file_rounded;
     }
@@ -27,9 +29,11 @@ class DocumentCard extends StatelessWidget {
   Color _getIconColor() {
     switch (doc.type) {
       case DocumentType.pdf:
-        return Colors.red[400]!;
+        return const Color(0xFFEF4444); // Red 500
       case DocumentType.word:
-        return Colors.blue[600]!;
+        return const Color(0xFF3B82F6); // Blue 500
+      case DocumentType.ppt:
+        return const Color(0xFFF59E0B); // Amber 500
       default:
         return Colors.grey;
     }
