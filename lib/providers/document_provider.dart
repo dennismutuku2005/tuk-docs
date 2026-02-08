@@ -39,7 +39,13 @@ class DocumentProvider with ChangeNotifier {
   }
 
   void addToRecent(DocumentModel doc) {
-    // Remove if already exists (to move to front)
+    // Add to allDocs if not already there so it shows up in Library
+    bool existsInLibrary = _allDocs.any((d) => d.path == doc.path);
+    if (!existsInLibrary) {
+      _allDocs.insert(0, doc);
+    }
+
+    // Update recentDocs
     _recentDocs.removeWhere((d) => d.path == doc.path);
     _recentDocs.insert(0, doc);
     
